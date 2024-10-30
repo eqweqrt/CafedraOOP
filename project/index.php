@@ -1,249 +1,53 @@
 <?php
-/*class Cat
+
+use Models\Articles\Article;
+use Models\Users\User;
+
+function myAutoLoader(string $classname)
 {
-    private $name;
-    private $color;
-
-    public function __construct(string $name, string $color)
-    {
-        $this->name = $name;
-        $this->color = $color;
-    }
-
-    public function sayHello()
-    {
-        echo 'Привет! Меня зовут ' . $this->name . '.<br>' . 'Я ' . $this->color . '!';
-    }
-
-    public function setName(string $name)
-    {
-        $this->name = $name;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function getColor(): string
-    {
-        return $this->color;
-    }
-
-
+    $classname = str_replace('Project\\', '', $classname);
+    $filePath = __DIR__ . '/' . str_replace('\\', '/', $classname) . '.php';
+    require_once $filePath;
 }
-$cat = new Cat('Малышка', 'черная');
-echo $cat->sayHello();
-*/
+
+spl_autoload_register('myAutoLoader');
+
 /*
-class Post
+$controller = new \Controllers\MainController();
+
+if(!empty($_GET['name']))
 {
-    protected $title;
-    protected $text;
-
-    public function __construct(string $title, string $text)
-    {
-        $this->title = $title;
-        $this->text = $text;
-    }
-
-    public function getTitle()
-    {
-        return $this->title;
-    }
-
-    public function setTitle($title): void
-    {
-        $this->title = $title;
-    }
-
-    public function getText()
-    {
-        return $this->text;
-    }
-
-    public function setText($text): void
-    {
-        $this->text = $text;
-    }
+    $controller->sayHello($_GET['name']);
+} else {
+    $controller->main();
 }
-class Lesson extends Post
-{
-    protected $homework;
-
-    public function __construct(string $title, string $text, string $homework)
-    {
-        parent::__construct($title, $text);
-        $this->homework = $homework;
-    }
-
-    public function getHomework(): string
-    {
-        return $this->homework;
-    }
-
-    public function setHomework(string $homework): void
-    {
-        $this->homework = $homework;
-    }
-}
-
-class PaidLesson extends Lesson
-{
-    private $price;
-    public function __construct(string $title, string $text, string $homework, float $price)
-    {
-        parent::__construct($title, $text, $homework);
-        $this->price = $price;
-    }
-
-    public function getPrice(): float
-    {
-        return $this->price;
-    }
-
-    public function setPrice(float $price)
-    {
-        $this->price = $price;
-    }
-}
-
-$paidLesson = new PaidLesson('Урок о наследовании в PHP',
-    '0-10, 123, 1 2 3',
-    'Кушайте здраво!',
-    1.1);
-echo var_dump($paidLesson);
-*/
-/*
-interface CalculateSquare
-{
-    public function calculateSquare(): float;
-}
-class Cat
-{
-
-}
-class Rectangle implements CalculateSquare
-{
-    private $x;
-    private $y;
-
-    public function __construct(float $x, float $y)
-    {
-        $this->x = $x;
-        $this->y = $y;
-    }
-
-    public function calculateSquare(): float
-    {
-        return $this->x * $this->y;
-    }
-}
-
-class Square implements CalculateSquare
-{
-    private $x;
-
-    public function __construct(float $x)
-    {
-        $this->x = $x;
-    }
-
-    public function calculateSquare(): float
-    {
-        return $this->x ** 2;
-    }
-}
-
-class Circle implements CalculateSquare
-{
-    const PI =  3.14159265358979;
-    private $r;
-
-    public function __construct(float $r)
-    {
-        $this->r = $r;
-    }
-
-    public function calculateSquare(): float
-    {
-        $pi = 3.14159265358979;
-        return $pi * ($this->r ** 2);
-    }
-}
-
-$objects = [
-    new Square(5),
-    new Rectangle(2, 4),
-    new Circle(5),
-    new Cat()
-];
-
-foreach ($objects as $object) {
-    if ($object instanceof CalculateSquare) {
-        echo 'Объект реализует интерфейс CalculateSquare. Это объект класса - ' . get_class($object).' Площадь: ' . $object->calculateSquare();
-        echo '<br>';
-    }
-    else
-    {
-        echo 'Объект класса ' . get_class($object) . ' не реализует интерфейс CalculateSquare';
-    }
-}
-echo get_class($objects[0]);
 */
 
-abstract class HumanAbstract
-{
-    private $name;
+$route = $_GET['route'] ?? '';
+$routes = require __DIR__ . '/Routes.php';
+$route = ltrim($route, '/');
 
-    public function __construct(string $name)
+$isRouteFound = false;
+foreach ($routes as $pattern => $controllerAndAction) {
+    preg_match($pattern, $route, $matches);
+    if(!empty($matches))
     {
-        $this->name = $name;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    abstract public function getGreetings(): string;
-    abstract public function getMyNameIs(): string;
-
-    public function introduceYourself(): string
-    {
-        return $this->getGreetings() . '! ' . $this->getMyNameIs() . ' ' . $this->getName() . '.';
+        if(!empty($matches))
+        {
+            $isRouteFound = true;
+            break;
+        }
     }
 }
 
-class RussianHuman extends HumanAbstract
+if(!$isRouteFound)
 {
-    public function getGreetings(): string
-    {
-        return 'Привет, мир';
-    }
-
-    public function getMyNameIs(): string
-    {
-        return 'Меня зовут ';
-    }
+    echo 'Страница не найдена!';
+    return;
 }
-class EnglishHuman extends HumanAbstract
-{
-    public function getGreetings(): string
-    {
-        return 'Hello world';
-    }
+$controllerName = $controllerAndAction[0];
+$actionName = $controllerAndAction[1];
 
-    public function getMyNameIs(): string
-    {
-        return 'My name is ';
-    }
-}
-
-$russin = new RussianHuman('Квадрицепс');
-$english = new EnglishHuman('Helicopter');
-
-echo $russin->introduceYourself();
-echo $english->introduceYourself();
-
+$controller = new $controllerName();
+$controller->$actionName(...$matches);
 ?>
